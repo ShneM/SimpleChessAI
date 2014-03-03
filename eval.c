@@ -11,7 +11,7 @@
 #include "data.h"
 #include "protos.h"
 
-
+// Define bonuses and penalties to apply to scores
 #define DOUBLED_PAWN_PENALTY		10
 #define ISOLATED_PAWN_PENALTY		20
 #define BACKWARDS_PAWN_PENALTY		8
@@ -21,15 +21,13 @@
 #define ROOK_ON_SEVENTH_BONUS		20
 
 
-/* the values of the pieces */
+/* Intrinsic piece value
+   Pawn, Knight, Bishop, Rook, Queen, King */
 int piece_value[6] = {
 	100, 300, 300, 500, 900, 0
 };
 
-/* The "pcsq" arrays are piece/square tables. They're values
-   added to the material value of the piece based on the
-   location of the piece. */
-
+// Piece-square table modifies score based on position
 int pawn_pcsq[64] = {
 	  0,   0,   0,   0,   0,   0,   0,   0,
 	  5,  10,  15,  20,  20,  15,  10,   5,
@@ -106,31 +104,35 @@ int flip[64] = {
    impossibly far advanced (0 for LIGHT and 7 for DARK). This makes it easy to
    test for pawns on a rank and it simplifies some pawn evaluation code. */
 int pawn_rank[2][10];
+int piece_mat[2]; // Matrix of a side's piece values
+int pawn_mat[2]; // Matrix of a side's collective pawn values
 
-int piece_mat[2];  /* the value of a side's pieces */
-int pawn_mat[2];  /* the value of a side's pawns */
-
+/* Used to evaluate the future state of the board,
+   returns a relative score used to assess move strength. */
 int eval()
 {
-	int i;
-	int f;  /* file */
-	int score[2];  /* each side's score */
+	int i;  // Counter
+	int f;  // File
+	int score[2]; // Each side's score
 
-	/* this is the first pass: set up pawn_rank, piece_mat, and pawn_mat. */
+	// Initialize board scores by ranking pawns
 	for (i = 0; i < 10; ++i) {
 		pawn_rank[LIGHT][i] = 0;
 		pawn_rank[DARK][i] = 7;
 	}
+	// Initialize score matricies to zero
 	piece_mat[LIGHT] = 0;
 	piece_mat[DARK] = 0;
 	pawn_mat[LIGHT] = 0;
 	pawn_mat[DARK] = 0;
+	
+	// Scan through board and initialize pawn score matrix
 	for (i = 0; i < 64; ++i) {
 		if (color[i] == EMPTY)
 			continue;
 		if (piece[i] == PAWN) {
 			pawn_mat[color[i]] += piece_value[PAWN];
-			f = COL(i) + 1;  /* add 1 because of the extra file in the array */
+			f = COL(i) + 1;  // Add 1 to account for extra file
 			if (color[i] == LIGHT) {
 				if (pawn_rank[LIGHT][f] < ROW(i))
 					pawn_rank[LIGHT][f] = ROW(i);
@@ -144,7 +146,7 @@ int eval()
 			piece_mat[color[i]] += piece_value[piece[i]];
 	}
 
-	/* this is the second pass: evaluate each piece */
+	// Evaluate scores of each piece
 	score[LIGHT] = piece_mat[LIGHT] + pawn_mat[LIGHT];
 	score[DARK] = piece_mat[DARK] + pawn_mat[DARK];
 	for (i = 0; i < 64; ++i) {
@@ -172,7 +174,7 @@ int eval()
 						score[LIGHT] += ROOK_ON_SEVENTH_BONUS;
 					break;
 				case KING:
-					if (piece_mat[DARK] <= 1200)
+					if (piece_mat[DARK] <= 1200) // Determines endgame score conditions
 						score[LIGHT] += king_endgame_pcsq[i];
 					else
 						score[LIGHT] += eval_light_king(i);
@@ -201,7 +203,7 @@ int eval()
 						score[DARK] += ROOK_ON_SEVENTH_BONUS;
 					break;
 				case KING:
-					if (piece_mat[LIGHT] <= 1200)
+					if (piece_mat[LIGHT] <= 1200) // Determines endgame score conditions
 						score[DARK] += king_endgame_pcsq[flip[i]];
 					else
 						score[DARK] += eval_dark_king(i);
@@ -210,8 +212,7 @@ int eval()
 		}
 	}
 
-	/* the score[] array is set, now return the score relative
-	   to the side to move */
+	// Returns score relative to side
 	if (side == LIGHT)
 		return score[LIGHT] - score[DARK];
 	return score[DARK] - score[LIGHT];
@@ -219,30 +220,29 @@ int eval()
 
 int eval_light_pawn(int sq)
 {
-	int r;  /* the value to return */
-	int f;  /* the pawn's file */
+	int r;
+	int f;
 
 	r = 0;
 	f = COL(sq) + 1;
 
 	r += pawn_pcsq[sq];
 
-	/* if there's a pawn behind this one, it's doubled */
+	// Penalize if a pawn occupies the space behind the pawn in question
 	if (pawn_rank[LIGHT][f] > ROW(sq))
 		r -= DOUBLED_PAWN_PENALTY;
 
-	/* if there aren't any friendly pawns on either side of
-	   this one, it's isolated */
+	// Penalize if not flanked by friendly pawns
 	if ((pawn_rank[LIGHT][f - 1] == 0) &&
 			(pawn_rank[LIGHT][f + 1] == 0))
 		r -= ISOLATED_PAWN_PENALTY;
 
-	/* if it's not isolated, it might be backwards */
+	// Penalize if pawn is backwards (cannot safely advance)
 	else if ((pawn_rank[LIGHT][f - 1] < ROW(sq)) &&
 			(pawn_rank[LIGHT][f + 1] < ROW(sq)))
 		r -= BACKWARDS_PAWN_PENALTY;
 
-	/* add a bonus if the pawn is passed */
+	// Add bonus if pawn is passed
 	if ((pawn_rank[DARK][f - 1] >= ROW(sq)) &&
 			(pawn_rank[DARK][f] >= ROW(sq)) &&
 			(pawn_rank[DARK][f + 1] >= ROW(sq)))
@@ -253,30 +253,29 @@ int eval_light_pawn(int sq)
 
 int eval_dark_pawn(int sq)
 {
-	int r;  /* the value to return */
-	int f;  /* the pawn's file */
+	int r;
+	int f;
 
 	r = 0;
 	f = COL(sq) + 1;
 
 	r += pawn_pcsq[flip[sq]];
 
-	/* if there's a pawn behind this one, it's doubled */
+	// Penalize if a pawn occupies the space behind the pawn in question
 	if (pawn_rank[DARK][f] < ROW(sq))
 		r -= DOUBLED_PAWN_PENALTY;
 
-	/* if there aren't any friendly pawns on either side of
-	   this one, it's isolated */
+	// Penalize if not flanked by friendly pawns
 	if ((pawn_rank[DARK][f - 1] == 7) &&
 			(pawn_rank[DARK][f + 1] == 7))
 		r -= ISOLATED_PAWN_PENALTY;
 
-	/* if it's not isolated, it might be backwards */
+	// Penalize if pawn is backwards (cannot safely advance)
 	else if ((pawn_rank[DARK][f - 1] > ROW(sq)) &&
 			(pawn_rank[DARK][f + 1] > ROW(sq)))
 		r -= BACKWARDS_PAWN_PENALTY;
 
-	/* add a bonus if the pawn is passed */
+	// Add bonus if pawn is passed
 	if ((pawn_rank[LIGHT][f - 1] <= ROW(sq)) &&
 			(pawn_rank[LIGHT][f] <= ROW(sq)) &&
 			(pawn_rank[LIGHT][f + 1] <= ROW(sq)))
@@ -287,63 +286,56 @@ int eval_dark_pawn(int sq)
 
 int eval_light_king(int sq)
 {
-	int r;  /* the value to return */
+	int r;
 	int i;
 
 	r = king_pcsq[sq];
 
-	/* if the king is castled, use a special function to evaluate the
-	   pawns on the appropriate side */
+	// Evaluates safety of king if castled
 	if (COL(sq) < 3) {
 		r += eval_lkp(1);
 		r += eval_lkp(2);
-		r += eval_lkp(3) / 2;  /* problems with pawns on the c & f files
-								  are not as severe */
+		r += eval_lkp(3) / 2;
 	}
 	else if (COL(sq) > 4) {
 		r += eval_lkp(8);
 		r += eval_lkp(7);
 		r += eval_lkp(6) / 2;
 	}
-
-	/* otherwise, just assess a penalty if there are open files near
-	   the king */
+	// Penalty added if open files around king
 	else {
 		for (i = COL(sq); i <= COL(sq) + 2; ++i)
 			if ((pawn_rank[LIGHT][i] == 0) &&
 					(pawn_rank[DARK][i] == 7))
 				r -= 10;
 	}
-
-	/* scale the king safety value according to the opponent's material;
-	   the premise is that your king safety can only be bad if the
-	   opponent has enough pieces to attack you */
+	
+	// Scale score based on number of opposing pieces
 	r *= piece_mat[DARK];
 	r /= 3100;
 
 	return r;
 }
 
-/* eval_lkp(f) evaluates the Light King Pawn on file f */
-
+// Modulates score based on state of the light-side pawn on rank f
 int eval_lkp(int f)
 {
 	int r = 0;
 
-	if (pawn_rank[LIGHT][f] == 6);  /* pawn hasn't moved */
+	if (pawn_rank[LIGHT][f] == 6);  // Pawn occupies rank f
 	else if (pawn_rank[LIGHT][f] == 5)
-		r -= 10;  /* pawn moved one square */
+		r -= 10; // Pawn has moved 1 square
 	else if (pawn_rank[LIGHT][f] != 0)
-		r -= 20;  /* pawn moved more than one square */
+		r -= 20; // Pawn has moved > 1 square
 	else
-		r -= 25;  /* no pawn on this file */
+		r -= 25; // No pawn present
 
 	if (pawn_rank[DARK][f] == 7)
-		r -= 15;  /* no enemy pawn */
+		r -= 15; // No enemy pawn present
 	else if (pawn_rank[DARK][f] == 5)
-		r -= 10;  /* enemy pawn on the 3rd rank */
+		r -= 10; // Enemy pawn on 3rd rank
 	else if (pawn_rank[DARK][f] == 4)
-		r -= 5;   /* enemy pawn on the 4th rank */
+		r -= 5;  // Enemy pawn on 4th rank
 
 	return r;
 }
@@ -353,6 +345,7 @@ int eval_dark_king(int sq)
 	int r;
 	int i;
 
+	// Evaluates safety of king if castled
 	r = king_pcsq[flip[sq]];
 	if (COL(sq) < 3) {
 		r += eval_dkp(1);
@@ -364,35 +357,39 @@ int eval_dark_king(int sq)
 		r += eval_dkp(7);
 		r += eval_dkp(6) / 2;
 	}
+	// Penalty added if open files around king
 	else {
 		for (i = COL(sq); i <= COL(sq) + 2; ++i)
 			if ((pawn_rank[LIGHT][i] == 0) &&
 					(pawn_rank[DARK][i] == 7))
 				r -= 10;
 	}
+	
+	// Scale score based on number of opposing pieces
 	r *= piece_mat[LIGHT];
 	r /= 3100;
 	return r;
 }
 
+// Modulates score based on state of the dark-side pawn on rank f
 int eval_dkp(int f)
 {
 	int r = 0;
 
-	if (pawn_rank[DARK][f] == 1);
+	if (pawn_rank[DARK][f] == 1); // Pawn occupies rank f
 	else if (pawn_rank[DARK][f] == 2)
-		r -= 10;
+		r -= 10; // Pawn has moved 1 square
 	else if (pawn_rank[DARK][f] != 7)
-		r -= 20;
+		r -= 20; // Pawn has moved > 1 square
 	else
-		r -= 25;
+		r -= 25; // No pawn present
 
 	if (pawn_rank[LIGHT][f] == 0)
-		r -= 15;
+		r -= 15; // No enemy pawn present
 	else if (pawn_rank[LIGHT][f] == 2)
-		r -= 10;
+		r -= 10; // Enemy pawn on 3rd rank
 	else if (pawn_rank[LIGHT][f] == 3)
-		r -= 5;
+		r -= 5; // Enemy pawn on 4th rank
 
 	return r;
 }
