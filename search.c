@@ -12,27 +12,21 @@
 #include "data.h"
 #include "protos.h"
 
-
-/* see the beginning of think() */
 #include <setjmp.h>
 jmp_buf env;
 BOOL stop_search;
 
-
-/* think() calls search() iteratively. Search statistics
-   are printed depending on the value of output:
-   0 = no output
-   1 = normal output
-   2 = xboard format output */
-
+// Searches iteratively
 void think(int output)
 {
 	int i, j, x;
 
 	/* try the opening book first */
+	/*
 	pv[0][0].u = book_move();
 	if (pv[0][0].u != -1)
 		return;
+	*/
 
 	/* some code that lets us longjmp back here and return
 	   from think() when our time is up */
@@ -75,12 +69,78 @@ void think(int output)
 	}
 }
 
-
-/* search() does just that, in negamax fashion */
-
+// Default search strategy: minimax with alpha-beta pruning
 int search(int alpha, int beta, int depth)
 {
-	
+	int i, j, x;
+	BOOL c, f;
+
+	// If maximum depth, call puning
+	if (!depth)
+		return quiesce(alpha,beta);
+	++nodes;
+
+	// Clean up nodes
+	if ((nodes & 1023) == 0)
+		checkup();
+
+	pv_length[ply] = ply;
+
+	// Check to see if position is repeated
+	if (ply && reps())
+		return 0;
+
+	// Too deep?
+	if (ply >= MAX_PLY - 1)
+		return eval();
+	if (hply >= HIST_STACK - 1)
+		return eval();
+
+	// In check? Add depth to search for ways out
+	c = in_check(side);
+	if (c)
+		++depth;
+	gen();
+	if (follow_pv)  // If following PV, sort PV
+		sort_pv();
+	f = FALSE;
+
+	// Loop through possible moves
+	for (i = first_move[ply]; i < first_move[ply + 1]; ++i) {
+		sort(i);
+		if (!makemove(gen_dat[i].m.b))
+			continue;
+		f = TRUE;
+		x = -search(-beta, -alpha, depth - 1);
+		takeback();
+		if (x > alpha) {
+
+			// If cutoff, search further next time
+			history[(int)gen_dat[i].m.b.from][(int)gen_dat[i].m.b.to] += depth;
+			if (x >= beta)
+				return beta;
+			alpha = x;
+
+			// Update PV
+			pv[ply][ply] = gen_dat[i].m;
+			for (j = ply + 1; j < pv_length[ply + 1]; ++j)
+				pv[ply][j] = pv[ply + 1][j];
+			pv_length[ply] = pv_length[ply + 1];
+		}
+	}
+
+	// No legal moves implies game ends in checkmate or stalemate
+	if (!f) {
+		if (c)
+			return -10000 + ply;
+		else
+			return 0;
+	}
+
+	// 50 move draw
+	if (fifty >= 100)
+		return 0;
+	return alpha;	
 }
 
 
@@ -97,19 +157,19 @@ int quiesce(int alpha,int beta)
 
 	++nodes;
 
-	/* do some housekeeping every 1024 nodes */
+	// Clean up nodes
 	if ((nodes & 1023) == 0)
 		checkup();
 
 	pv_length[ply] = ply;
 
-	/* are we too deep? */
+	// Return if too deep
 	if (ply >= MAX_PLY - 1)
 		return eval();
 	if (hply >= HIST_STACK - 1)
 		return eval();
 
-	/* check with the evaluation function */
+	// Check evaluation function
 	x = eval();
 	if (x >= beta)
 		return beta;
@@ -117,10 +177,10 @@ int quiesce(int alpha,int beta)
 		alpha = x;
 
 	gen_caps();
-	if (follow_pv)  /* are we following the PV? */
+	if (follow_pv)  // Following PV?
 		sort_pv();
 
-	/* loop through the moves */
+	// Loop through possible moves
 	for (i = first_move[ply]; i < first_move[ply + 1]; ++i) {
 		sort(i);
 		if (!makemove(gen_dat[i].m.b))
@@ -143,10 +203,7 @@ int quiesce(int alpha,int beta)
 }
 
 
-/* reps() returns the number of times the current position
-   has been repeated. It compares the current value of hash
-   to previous values. */
-
+// Returns number of times current position has been repeated
 int reps()
 {
 	int i;
@@ -205,13 +262,10 @@ void sort(int from)
 	gen_dat[bi] = g;
 }
 
-
-/* checkup() is called once in a while during the search. */
-
+// Check to make sure search time is not exceeded
 void checkup()
 {
-	/* is the engine's time up? if so, longjmp back to the
-	   beginning of think() */
+	// If time is up, 'longjmp' back to think()
 	if (get_ms() >= stop_time) {
 		stop_search = TRUE;
 		longjmp(env, 0);
