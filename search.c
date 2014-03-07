@@ -1,8 +1,14 @@
 /*
- *	SEARCH.C
- *	Tom Kerrigan's Simple Chess Program (TSCP)
- *
- *	Copyright 1997 Tom Kerrigan
+ *	Name:	Carly Deming, Trevor Sands
+ *	Class:	CS331 - Intro. to Intelligent Systems
+ *	File:	search.c
+ *	Info.:	Search and pruning functions for
+ *		chess agent's "intelligent" decision
+ *		making.
+ *	
+ *	Credit:	Adapted from Tom Kerrigan's Simple
+ *		Chess Program (TSCP.)
+ *		Copyright 1997, Tom Kerrigan
  */
 
 
