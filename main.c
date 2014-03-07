@@ -1,8 +1,13 @@
 /*
- *	MAIN.C
- *	Tom Kerrigan's Simple Chess Program (TSCP)
- *
- *	Copyright 1997 Tom Kerrigan
+ *	Name:	Carly Deming, Trevor Sands
+ *	Class:	CS331 - Intro. to Intelligent Systems
+ *	File:	main.c
+ *	Info.:	Main file for chess engine and
+ *		chess agent. Defines UI and options.
+ *	
+ *	Credit:	Adapted from Tom Kerrigan's Simple
+ *		Chess Program (TSCP.)
+ *		Copyright 1997, Tom Kerrigan
  */
 
 
