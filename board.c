@@ -1,8 +1,14 @@
 /*
- *	BOARD.C
- *	Tom Kerrigan's Simple Chess Program (TSCP)
+ *	Name:	Carly Deming, Trevor Sands
+ *	Class:	CS331 - Intro. to Intelligent Systems
+ *	File:	board.c
+ *	Info.:	Defines the chess board structure and
+ *		piece placement options (move, attack,
+ *		etc.)
  *
- *	Copyright 1997 Tom Kerrigan
+ *	Credit:	Adapted from Tom Kerrigan's Simple
+ *		Chess Program (TSCP.)
+ *		Copyright 1997, Tom Kerrigan
  */
 
 
