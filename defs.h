@@ -4,7 +4,7 @@
  *	File:	defs.h
  *	Info.:	Header file for piece and game
  *		definitions and rules.
- *	
+ *
  *	Credit:	Adapted from Tom Kerrigan's Simple
  *		Chess Program (TSCP.)
  *		Copyright 1997, Tom Kerrigan
@@ -19,8 +19,8 @@
 #define MAX_PLY			32
 #define HIST_STACK		400
 
-#define LIGHT			0
-#define DARK			1
+#define WHITE			0
+#define BLACK			1
 
 #define PAWN			0
 #define KNIGHT			1
@@ -54,19 +54,19 @@
 
 
 /* This is the basic description of a move. promote is what
-   piece to promote the pawn to, if the move is a pawn
-   promotion. bits is a bitfield that describes the move,
-   with the following bits:
-
-   1	capture
-   2	castle
-   4	en passant capture
-   8	pushing a pawn 2 squares
-   16	pawn move
-   32	promote
-
-   It's union'ed with an integer so two moves can easily
-   be compared with each other. */
+ piece to promote the pawn to, if the move is a pawn
+ promotion. bits is a bitfield that describes the move,
+ with the following bits:
+ 
+ 1	capture
+ 2	castle
+ 4	en passant capture
+ 8	pushing a pawn 2 squares
+ 16	pawn move
+ 32	promote
+ 
+ It's union'ed with an integer so two moves can easily
+ be compared with each other. */
 
 typedef struct {
 	char from;
@@ -81,14 +81,14 @@ typedef union {
 } move;
 
 /* an element of the move stack. it's just a move with a
-   score, so it can be sorted by the search functions. */
+ score, so it can be sorted by the search functions. */
 typedef struct {
 	move m;
 	int score;
 } gen_t;
 
 /* an element of the history stack, with the information
-   necessary to take a move back. */
+ necessary to take a move back. */
 typedef struct {
 	move m;
 	int capture;
