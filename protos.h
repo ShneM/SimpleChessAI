@@ -1,12 +1,13 @@
 /*
- *	PROTOS.H
- *	Tom Kerrigan's Simple Chess Program (TSCP)
- *
- *	Copyright 1997 Tom Kerrigan
+ *	  Name:	  Carly Deming, Trevor Sands
+ *	  Class:	CS331 - Intro. to Intelligent Systems
+ *	  File:	  protos.h
+ *	  Info.:	Function prototypes.
+ *	
+ *	  Credit:	Adapted from Tom Kerrigan's Simple
+ *		        Chess Program (TSCP.)
+ *		        Copyright 1997, Tom Kerrigan
  */
-
-
-/* prototypes */
 
 /* board.c */
 void init_board();
