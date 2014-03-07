@@ -1,9 +1,9 @@
 /*
- *	  Name:	  Carly Deming, Trevor Sands
- *	  Class:	CS331 - Intro. to Intelligent Systems
- *	  File:	  protos.h
+ *	  Name:     Carly Deming, Trevor Sands
+ *	  Class:    CS331 - Intro. to Intelligent Systems
+ *	  File:     protos.h
  *	  Info.:	Function prototypes.
- *	
+ *
  *	  Credit:	Adapted from Tom Kerrigan's Simple
  *		        Chess Program (TSCP.)
  *		        Copyright 1997, Tom Kerrigan
@@ -40,11 +40,11 @@ void checkup();
 
 /* eval.c */
 int eval();
-int eval_light_pawn(int sq);
-int eval_dark_pawn(int sq);
-int eval_light_king(int sq);
+int eval_white_pawn(int sq);
+int eval_black_pawn(int sq);
+int eval_white_king(int sq);
 int eval_lkp(int f);
-int eval_dark_king(int sq);
+int eval_black_king(int sq);
 int eval_dkp(int f);
 
 /* main.c */
