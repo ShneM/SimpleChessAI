@@ -1,8 +1,13 @@
 /*
- *	DATA.C
- *	Tom Kerrigan's Simple Chess Program (TSCP)
- *
- *	Copyright 1997 Tom Kerrigan
+ *	Name:	Carly Deming, Trevor Sands
+ *	Class:	CS331 - Intro. to Intelligent Systems
+ *	File:	data.c
+ *	Info.:	Handles the intialization and 
+ *		definitions of game parameters.
+ *	
+ *	Credit:	Adapted from Tom Kerrigan's Simple
+ *		Chess Program (TSCP.)
+ *		Copyright 1997, Tom Kerrigan
  */
 
 
