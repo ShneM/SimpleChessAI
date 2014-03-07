@@ -4,7 +4,7 @@
  *	File:	main.c
  *	Info.:	Main file for chess engine and
  *		chess agent. Defines UI and options.
- *	
+ *
  *	Credit:	Adapted from Tom Kerrigan's Simple
  *		Chess Program (TSCP.)
  *		Copyright 1997, Tom Kerrigan
@@ -21,7 +21,7 @@
 
 
 /* get_ms() returns the milliseconds elapsed since midnight,
-   January 1, 1970. */
+ January 1, 1970. */
 
 #include <sys/timeb.h>
 BOOL ftime_ok = FALSE;  /* does ftime return milliseconds? */
@@ -36,15 +36,15 @@ int get_ms()
 
 
 /* main() is basically an infinite loop that either calls
-   think() when it's the computer's turn to move or prompts
-   the user for a command (and deciphers it). */
+ think() when it's the computer's turn to move or prompts
+ the user for a command (and deciphers it). */
 
 int main()
 {
 	int computer_side;
 	char s[256];
 	int m;
-
+    
 	printf("\n");
 	printf("Tom Kerrigan's Simple Chess Program (TSCP)\n");
 	printf("version 1.81, 2/5/03\n");
@@ -76,7 +76,7 @@ int main()
 			print_result();
 			continue;
 		}
-
+        
 		/* get user input */
 		printf("tscp> ");
 		if (scanf("%s", s) == EOF)
@@ -146,7 +146,7 @@ int main()
 			printf("Enter moves in coordinate notation, e.g., e2e4, e7e8Q\n");
 			continue;
 		}
-
+        
 		/* maybe the user entered a move? */
 		m = parse_move(s);
 		if (m == -1 || !makemove(gen_dat[m].m.b))
@@ -163,30 +163,30 @@ int main()
 
 
 /* parse the move s (in coordinate notation) and return the move's
-   index in gen_dat, or -1 if the move is illegal */
+ index in gen_dat, or -1 if the move is illegal */
 
 int parse_move(char *s)
 {
 	int from, to, i;
-
+    
 	/* make sure the string looks like a move */
 	if (s[0] < 'a' || s[0] > 'h' ||
-			s[1] < '0' || s[1] > '9' ||
-			s[2] < 'a' || s[2] > 'h' ||
-			s[3] < '0' || s[3] > '9')
+        s[1] < '0' || s[1] > '9' ||
+        s[2] < 'a' || s[2] > 'h' ||
+        s[3] < '0' || s[3] > '9')
 		return -1;
-
+    
 	from = s[0] - 'a';
 	from += 8 * (8 - (s[1] - '0'));
 	to = s[2] - 'a';
 	to += 8 * (8 - (s[3] - '0'));
-
+    
 	for (i = 0; i < first_move[1]; ++i)
 		if (gen_dat[i].m.b.from == from && gen_dat[i].m.b.to == to) {
-
+            
 			/* if the move is a promotion, handle the promotion piece;
-			   assume that the promotion moves occur consecutively in
-			   gen_dat. */
+             assume that the promotion moves occur consecutively in
+             gen_dat. */
 			if (gen_dat[i].m.b.bits & 32)
 				switch (s[4]) {
 					case 'N':
@@ -200,7 +200,7 @@ int parse_move(char *s)
 				}
 			return i;
 		}
-
+    
 	/* didn't find the move */
 	return -1;
 }
@@ -211,9 +211,9 @@ int parse_move(char *s)
 char *move_str(move_bytes m)
 {
 	static char str[6];
-
+    
 	char c;
-
+    
 	if (m.bits & 32) {
 		switch (m.promote) {
 			case KNIGHT:
@@ -255,10 +255,10 @@ void print_board()
 			case EMPTY:
 				printf(" .");
 				break;
-			case LIGHT:
+			case WHITE:
 				printf(" %c", piece_char[piece[i]]);
 				break;
-			case DARK:
+			case BLACK:
 				printf(" %c", piece_char[piece[i]] + ('a' - 'A'));
 				break;
 		}
@@ -269,12 +269,12 @@ void print_board()
 }
 
 /* print_result() checks to see if the game is over, and if so,
-   prints the result. */
+ prints the result. */
 
 void print_result()
 {
 	int i;
-
+    
 	/* is there a legal move? */
 	for (i = 0; i < first_move[1]; ++i)
 		if (makemove(gen_dat[i].m.b)) {
@@ -283,7 +283,7 @@ void print_result()
 		}
 	if (i == first_move[1]) {
 		if (in_check(side)) {
-			if (side == LIGHT)
+			if (side == WHITE)
 				printf("0-1 {Black mates}\n");
 			else
 				printf("1-0 {White mates}\n");
@@ -299,11 +299,11 @@ void print_result()
 
 
 /* bench: This is a little benchmark code that calculates how many
-   nodes per second TSCP searches.
-   It sets the position to move 17 of Bobby Fischer vs. J. Sherwin,
-   New Jersey State Open Championship, 9/2/1957.
-   Then it searches five ply three times. It calculates nodes per
-   second from the best time. */
+ nodes per second TSCP searches.
+ It sets the position to move 17 of Bobby Fischer vs. J. Sherwin,
+ New Jersey State Open Championship, 9/2/1957.
+ Then it searches five ply three times. It calculates nodes per
+ second from the best time. */
 
 int bench_color[64] = {
 	6, 1, 1, 6, 6, 1, 1, 6,
@@ -332,17 +332,17 @@ void bench()
 	int i;
 	int t[3];
 	double nps;
-
+    
 	/* setting the position to a non-initial position confuses the opening
-	   book code. */
+     book code. */
 	close_book();
-
+    
 	for (i = 0; i < 64; ++i) {
 		color[i] = bench_color[i];
 		piece[i] = bench_piece[i];
 	}
-	side = LIGHT;
-	xside = DARK;
+	side = WHITE;
+	xside = BLACK;
 	castle = 0;
 	ep = -1;
 	fifty = 0;
@@ -378,10 +378,10 @@ void bench()
 	}
 	nps = (double)nodes / (double)t[0];
 	nps *= 1000.0;
-
+    
 	/* Score: 1.000 = my Athlon XP 2000+ */
 	printf("Nodes per second: %d (Score: %.3f)\n", (int)nps, (float)nps/243169.0);
-
+    
 	init_board();
 	open_book();
 	gen();
