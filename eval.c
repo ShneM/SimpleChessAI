@@ -1,8 +1,14 @@
 /*
- *	EVAL.C
- *	Tom Kerrigan's Simple Chess Program (TSCP)
- *
- *	Copyright 1997 Tom Kerrigan
+ *	Name:	Carly Deming, Trevor Sands
+ *	Class:	CS331 - Intro. to Intelligent Systems
+ *	File:	eval.c
+ *	Info.:	Provides functions and definitions for
+ *		the agent to determine a move's relative
+ *		score.
+ *	
+ *	Credit:	Adapted from Tom Kerrigan's Simple
+ *		Chess Program (TSCP.)
+ *		Copyright 1997, Tom Kerrigan
  */
 
 
