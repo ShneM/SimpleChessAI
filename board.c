@@ -23,13 +23,13 @@
 void init_board()
 {
 	int i;
-
+    
 	for (i = 0; i < 64; ++i) {
 		color[i] = init_color[i];
 		piece[i] = init_piece[i];
 	}
-	side = LIGHT;
-	xside = DARK;
+	side = WHITE;
+	xside = BLACK;
 	castle = 15;
 	ep = -1;
 	fifty = 0;
@@ -45,7 +45,7 @@ void init_board()
 void init_hash()
 {
 	int i, j, k;
-
+    
 	srand(0);
 	for (i = 0; i < 2; ++i)
 		for (j = 0; j < 6; ++j)
@@ -58,14 +58,14 @@ void init_hash()
 
 
 /* hash_rand() XORs some shifted random numbers together to make sure
-   we have good coverage of all 32 bits. (rand() returns 16-bit numbers
-   on some systems.) */
+ we have good coverage of all 32 bits. (rand() returns 16-bit numbers
+ on some systems.) */
 
 int hash_rand()
 {
 	int i;
 	int r = 0;
-
+    
 	for (i = 0; i < 32; ++i)
 		r ^= rand() << i;
 	return r;
@@ -73,26 +73,26 @@ int hash_rand()
 
 
 /* set_hash() uses the Zobrist method of generating a unique number (hash)
-   for the current chess position. Of course, there are many more chess
-   positions than there are 32 bit numbers, so the numbers generated are
-   not really unique, but they're unique enough for our purposes (to detect
-   repetitions of the position). 
-   The way it works is to XOR random numbers that correspond to features of
-   the position, e.g., if there's a black knight on B8, hash is XORed with
-   hash_piece[BLACK][KNIGHT][B8]. All of the pieces are XORed together,
-   hash_side is XORed if it's black's move, and the en passant square is
-   XORed if there is one. (A chess technicality is that one position can't
-   be a repetition of another if the en passant state is different.) */
+ for the current chess position. Of course, there are many more chess
+ positions than there are 32 bit numbers, so the numbers generated are
+ not really unique, but they're unique enough for our purposes (to detect
+ repetitions of the position).
+ The way it works is to XOR random numbers that correspond to features of
+ the position, e.g., if there's a black knight on B8, hash is XORed with
+ hash_piece[BLACK][KNIGHT][B8]. All of the pieces are XORed together,
+ hash_side is XORed if it's black's move, and the en passant square is
+ XORed if there is one. (A chess technicality is that one position can't
+ be a repetition of another if the en passant state is different.) */
 
 void set_hash()
 {
 	int i;
-
-	hash = 0;	
+    
+	hash = 0;
 	for (i = 0; i < 64; ++i)
 		if (color[i] != EMPTY)
 			hash ^= hash_piece[color[i]][piece[i]][i];
-	if (side == DARK)
+	if (side == BLACK)
 		hash ^= hash_side;
 	if (ep != -1)
 		hash ^= hash_ep[ep];
@@ -100,13 +100,13 @@ void set_hash()
 
 
 /* in_check() returns TRUE if side s is in check and FALSE
-   otherwise. It just scans the board to find side s's king
-   and calls attack() to see if it's being attacked. */
+ otherwise. It just scans the board to find side s's king
+ and calls attack() to see if it's being attacked. */
 
 BOOL in_check(int s)
 {
 	int i;
-
+    
 	for (i = 0; i < 64; ++i)
 		if (piece[i] == KING && color[i] == s)
 			return attack(i, s ^ 1);
@@ -115,16 +115,16 @@ BOOL in_check(int s)
 
 
 /* attack() returns TRUE if square sq is being attacked by side
-   s and FALSE otherwise. */
+ s and FALSE otherwise. */
 
 BOOL attack(int sq, int s)
 {
 	int i, j, n;
-
+    
 	for (i = 0; i < 64; ++i)
 		if (color[i] == s) {
 			if (piece[i] == PAWN) {
-				if (s == LIGHT) {
+				if (s == WHITE) {
 					if (COL(i) != 0 && i - 9 == sq)
 						return TRUE;
 					if (COL(i) != 7 && i - 7 == sq)
@@ -156,25 +156,25 @@ BOOL attack(int sq, int s)
 
 
 /* gen() generates pseudo-legal moves for the current position.
-   It scans the board to find friendly pieces and then determines
-   what squares they attack. When it finds a piece/square
-   combination, it calls gen_push to put the move on the "move
-   stack." */
+ It scans the board to find friendly pieces and then determines
+ what squares they attack. When it finds a piece/square
+ combination, it calls gen_push to put the move on the "move
+ stack." */
 
 void gen()
 {
 	int i, j, n;
-
+    
 	/* so far, we have no moves for the current ply */
 	first_move[ply + 1] = first_move[ply];
-
+    
 	for (i = 0; i < 64; ++i)
 		if (color[i] == side) {
 			if (piece[i] == PAWN) {
-				if (side == LIGHT) {
-					if (COL(i) != 0 && color[i - 9] == DARK)
+				if (side == WHITE) {
+					if (COL(i) != 0 && color[i - 9] == BLACK)
 						gen_push(i, i - 9, 17);
-					if (COL(i) != 7 && color[i - 7] == DARK)
+					if (COL(i) != 7 && color[i - 7] == BLACK)
 						gen_push(i, i - 7, 17);
 					if (color[i - 8] == EMPTY) {
 						gen_push(i, i - 8, 16);
@@ -183,9 +183,9 @@ void gen()
 					}
 				}
 				else {
-					if (COL(i) != 0 && color[i + 7] == LIGHT)
+					if (COL(i) != 0 && color[i + 7] == WHITE)
 						gen_push(i, i + 7, 17);
-					if (COL(i) != 7 && color[i + 9] == LIGHT)
+					if (COL(i) != 7 && color[i + 9] == WHITE)
 						gen_push(i, i + 9, 17);
 					if (color[i + 8] == EMPTY) {
 						gen_push(i, i + 8, 16);
@@ -210,9 +210,9 @@ void gen()
 							break;
 					}
 		}
-
+    
 	/* generate castle moves */
-	if (side == LIGHT) {
+	if (side == WHITE) {
 		if (castle & 1)
 			gen_push(E1, G1, 2);
 		if (castle & 2)
@@ -227,16 +227,16 @@ void gen()
 	
 	/* generate en passant moves */
 	if (ep != -1) {
-		if (side == LIGHT) {
-			if (COL(ep) != 0 && color[ep + 7] == LIGHT && piece[ep + 7] == PAWN)
+		if (side == WHITE) {
+			if (COL(ep) != 0 && color[ep + 7] == WHITE && piece[ep + 7] == PAWN)
 				gen_push(ep + 7, ep, 21);
-			if (COL(ep) != 7 && color[ep + 9] == LIGHT && piece[ep + 9] == PAWN)
+			if (COL(ep) != 7 && color[ep + 9] == WHITE && piece[ep + 9] == PAWN)
 				gen_push(ep + 9, ep, 21);
 		}
 		else {
-			if (COL(ep) != 0 && color[ep - 9] == DARK && piece[ep - 9] == PAWN)
+			if (COL(ep) != 0 && color[ep - 9] == BLACK && piece[ep - 9] == PAWN)
 				gen_push(ep - 9, ep, 21);
-			if (COL(ep) != 7 && color[ep - 7] == DARK && piece[ep - 7] == PAWN)
+			if (COL(ep) != 7 && color[ep - 7] == BLACK && piece[ep - 7] == PAWN)
 				gen_push(ep - 7, ep, 21);
 		}
 	}
@@ -244,29 +244,29 @@ void gen()
 
 
 /* gen_caps() is basically a copy of gen() that's modified to
-   only generate capture and promote moves. It's used by the
-   quiescence search. */
+ only generate capture and promote moves. It's used by the
+ quiescence search. */
 
 void gen_caps()
 {
 	int i, j, n;
-
+    
 	first_move[ply + 1] = first_move[ply];
 	for (i = 0; i < 64; ++i)
 		if (color[i] == side) {
 			if (piece[i]==PAWN) {
-				if (side == LIGHT) {
-					if (COL(i) != 0 && color[i - 9] == DARK)
+				if (side == WHITE) {
+					if (COL(i) != 0 && color[i - 9] == BLACK)
 						gen_push(i, i - 9, 17);
-					if (COL(i) != 7 && color[i - 7] == DARK)
+					if (COL(i) != 7 && color[i - 7] == BLACK)
 						gen_push(i, i - 7, 17);
 					if (i <= 15 && color[i - 8] == EMPTY)
 						gen_push(i, i - 8, 16);
 				}
-				if (side == DARK) {
-					if (COL(i) != 0 && color[i + 7] == LIGHT)
+				if (side == BLACK) {
+					if (COL(i) != 0 && color[i + 7] == WHITE)
 						gen_push(i, i + 7, 17);
-					if (COL(i) != 7 && color[i + 9] == LIGHT)
+					if (COL(i) != 7 && color[i + 9] == WHITE)
 						gen_push(i, i + 9, 17);
 					if (i >= 48 && color[i + 8] == EMPTY)
 						gen_push(i, i + 8, 16);
@@ -288,16 +288,16 @@ void gen_caps()
 					}
 		}
 	if (ep != -1) {
-		if (side == LIGHT) {
-			if (COL(ep) != 0 && color[ep + 7] == LIGHT && piece[ep + 7] == PAWN)
+		if (side == WHITE) {
+			if (COL(ep) != 0 && color[ep + 7] == WHITE && piece[ep + 7] == PAWN)
 				gen_push(ep + 7, ep, 21);
-			if (COL(ep) != 7 && color[ep + 9] == LIGHT && piece[ep + 9] == PAWN)
+			if (COL(ep) != 7 && color[ep + 9] == WHITE && piece[ep + 9] == PAWN)
 				gen_push(ep + 9, ep, 21);
 		}
 		else {
-			if (COL(ep) != 0 && color[ep - 9] == DARK && piece[ep - 9] == PAWN)
+			if (COL(ep) != 0 && color[ep - 9] == BLACK && piece[ep - 9] == PAWN)
 				gen_push(ep - 9, ep, 21);
-			if (COL(ep) != 7 && color[ep - 7] == DARK && piece[ep - 7] == PAWN)
+			if (COL(ep) != 7 && color[ep - 7] == BLACK && piece[ep - 7] == PAWN)
 				gen_push(ep - 7, ep, 21);
 		}
 	}
@@ -305,20 +305,20 @@ void gen_caps()
 
 
 /* gen_push() puts a move on the move stack, unless it's a
-   pawn promotion that needs to be handled by gen_promote().
-   It also assigns a score to the move for alpha-beta move
-   ordering. If the move is a capture, it uses MVV/LVA
-   (Most Valuable Victim/Least Valuable Attacker). Otherwise,
-   it uses the move's history heuristic value. Note that
-   1,000,000 is added to a capture move's score, so it
-   always gets ordered above a "normal" move. */
+ pawn promotion that needs to be handled by gen_promote().
+ It also assigns a score to the move for alpha-beta move
+ ordering. If the move is a capture, it uses MVV/LVA
+ (Most Valuable Victim/Least Valuable Attacker). Otherwise,
+ it uses the move's history heuristic value. Note that
+ 1,000,000 is added to a capture move's score, so it
+ always gets ordered above a "normal" move. */
 
 void gen_push(int from, int to, int bits)
 {
 	gen_t *g;
 	
 	if (bits & 16) {
-		if (side == LIGHT) {
+		if (side == WHITE) {
 			if (to <= H8) {
 				gen_promote(from, to, bits);
 				return;
@@ -344,7 +344,7 @@ void gen_push(int from, int to, int bits)
 
 
 /* gen_promote() is just like gen_push(), only it puts 4 moves
-   on the move stack, one for each possible promotion piece */
+ on the move stack, one for each possible promotion piece */
 
 void gen_promote(int from, int to, int bits)
 {
@@ -363,44 +363,44 @@ void gen_promote(int from, int to, int bits)
 
 
 /* makemove() makes a move. If the move is illegal, it
-   undoes whatever it did and returns FALSE. Otherwise, it
-   returns TRUE. */
+ undoes whatever it did and returns FALSE. Otherwise, it
+ returns TRUE. */
 
 BOOL makemove(move_bytes m)
 {
 	
 	/* test to see if a castle move is legal and move the rook
-	   (the king is moved with the usual move code later) */
+     (the king is moved with the usual move code later) */
 	if (m.bits & 2) {
 		int from, to;
-
+        
 		if (in_check(side))
 			return FALSE;
 		switch (m.to) {
 			case 62:
 				if (color[F1] != EMPTY || color[G1] != EMPTY ||
-						attack(F1, xside) || attack(G1, xside))
+                    attack(F1, xside) || attack(G1, xside))
 					return FALSE;
 				from = H1;
 				to = F1;
 				break;
 			case 58:
 				if (color[B1] != EMPTY || color[C1] != EMPTY || color[D1] != EMPTY ||
-						attack(C1, xside) || attack(D1, xside))
+                    attack(C1, xside) || attack(D1, xside))
 					return FALSE;
 				from = A1;
 				to = D1;
 				break;
 			case 6:
 				if (color[F8] != EMPTY || color[G8] != EMPTY ||
-						attack(F8, xside) || attack(G8, xside))
+                    attack(F8, xside) || attack(G8, xside))
 					return FALSE;
 				from = H8;
 				to = F8;
 				break;
 			case 2:
 				if (color[B8] != EMPTY || color[C8] != EMPTY || color[D8] != EMPTY ||
-						attack(C8, xside) || attack(D8, xside))
+                    attack(C8, xside) || attack(D8, xside))
 					return FALSE;
 				from = A8;
 				to = D8;
@@ -415,7 +415,7 @@ BOOL makemove(move_bytes m)
 		color[from] = EMPTY;
 		piece[from] = EMPTY;
 	}
-
+    
 	/* back up information so we can take the move back later. */
 	hist_dat[hply].m.b = m;
 	hist_dat[hply].capture = piece[(int)m.to];
@@ -425,12 +425,12 @@ BOOL makemove(move_bytes m)
 	hist_dat[hply].hash = hash;
 	++ply;
 	++hply;
-
+    
 	/* update the castle, en passant, and
-	   fifty-move-draw variables */
+     fifty-move-draw variables */
 	castle &= castle_mask[(int)m.from] & castle_mask[(int)m.to];
 	if (m.bits & 8) {
-		if (side == LIGHT)
+		if (side == WHITE)
 			ep = m.to + 8;
 		else
 			ep = m.to - 8;
@@ -441,7 +441,7 @@ BOOL makemove(move_bytes m)
 		fifty = 0;
 	else
 		++fifty;
-
+    
 	/* move the piece */
 	color[(int)m.to] = side;
 	if (m.bits & 32)
@@ -450,10 +450,10 @@ BOOL makemove(move_bytes m)
 		piece[(int)m.to] = piece[(int)m.from];
 	color[(int)m.from] = EMPTY;
 	piece[(int)m.from] = EMPTY;
-
+    
 	/* erase the pawn if this is an en passant move */
 	if (m.bits & 4) {
-		if (side == LIGHT) {
+		if (side == WHITE) {
 			color[m.to + 8] = EMPTY;
 			piece[m.to + 8] = EMPTY;
 		}
@@ -462,10 +462,10 @@ BOOL makemove(move_bytes m)
 			piece[m.to - 8] = EMPTY;
 		}
 	}
-
+    
 	/* switch sides and test for legality (if we can capture
-	   the other guy's king, it's an illegal position and
-	   we need to take the move back) */
+     the other guy's king, it's an illegal position and
+     we need to take the move back) */
 	side ^= 1;
 	xside ^= 1;
 	if (in_check(xside)) {
@@ -482,7 +482,7 @@ BOOL makemove(move_bytes m)
 void takeback()
 {
 	move_bytes m;
-
+    
 	side ^= 1;
 	xside ^= 1;
 	--ply;
@@ -507,7 +507,7 @@ void takeback()
 	}
 	if (m.bits & 2) {
 		int from, to;
-
+        
 		switch(m.to) {
 			case 62:
 				from = F1;
@@ -525,7 +525,7 @@ void takeback()
 				from = D8;
 				to = A8;
 				break;
-			default:  /* shouldn't get here */
+			default:
 				from = -1;
 				to = -1;
 				break;
@@ -536,7 +536,7 @@ void takeback()
 		piece[from] = EMPTY;
 	}
 	if (m.bits & 4) {
-		if (side == LIGHT) {
+		if (side == WHITE) {
 			color[m.to + 8] = xside;
 			piece[m.to + 8] = PAWN;
 		}
