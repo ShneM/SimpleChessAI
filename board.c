@@ -7,8 +7,9 @@
  *		etc.)
  *
  *	Credit:	Adapted from Tom Kerrigan's Simple
- *		Chess Program (TSCP.)
+ *		Chess Program (TSCP)
  *		Copyright 1997, Tom Kerrigan
+ *		Used with permission
  */
 
 
