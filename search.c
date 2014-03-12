@@ -75,9 +75,74 @@ void think(int output)
 			break;
 	}
 }
+int search(int alpha, int beta, int depth){
+	int i, nextMoveVal, val, j;
+	BOOL f = FALSE;
+	
+	// If maximum depth, call puning
+	if (!depth)
+		return quiesce(alpha,beta);
+	++nodes;
+
+	// Clean up nodes
+	if ((nodes & 1023) == 0)
+		checkup();
+
+	pv_length[ply] = ply;
+
+	// Check to see if position is repeated
+	if (ply && reps())
+		return 0;
+
+	// Too deep?
+	if (ply >= MAX_PLY - 1)
+		return eval();
+	if (hply >= HIST_STACK - 1)
+		return eval();
+	
+	if (depth == 0){
+		return eval();
+	}
+	else {
+		gen();
+		for (i = first_move[ply]; i < first_move[ply + 1]; ++i) {
+			makemove(gen_dat[i].m.b);
+			f = TRUE;
+			nextMoveVal = -search(-alpha, -beta, depth--);
+			val = eval();
+			if (nextMoveVal > alpha){
+				history[(int)gen_dat[i].m.b.from][(int)gen_dat[i].m.b.to] += depth;
+				if (nextMoveVal >= beta){
+					return beta;
+				}
+				alpha = nextMoveVal;
+				
+				pv[ply][ply] = gen_dat[i].m;
+				for(j = ply+1; j<pv_length[ply+1]; ++j){
+					pv[ply][j] = pv[ply+1][j];
+				}
+				pv_length[ply] = pv_length[ply+1];
+			}
+		}
+	}
+
+	// No legal moves implies game ends in checkmate or stalemate
+	if (!f) {
+		if (in_check(side))
+			return -10000 + ply;
+		else
+			return 0;
+	}
+
+	// 50 move draw
+	if (fifty >= 100)
+		return 0;
+	return alpha;
+}
+
 
 // Default search strategy: minimax with alpha-beta pruning
-int search(int alpha, int beta, int depth)
+int default_search(int alpha, int beta, int depth)
 {
 	int i, j, x;
 	BOOL c, f;
