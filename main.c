@@ -83,6 +83,7 @@ int main()
 			ply = 0;
 			gen();
 			print_result();
+			print_board();
 			continue;
 		}
         
@@ -160,7 +161,6 @@ int main()
 			print_result();
 		}
 		
-		print_board();
 	}
 
 	return 0;
