@@ -297,11 +297,7 @@ void test1()
 	double nps;
 
 	close_book();
-    
-	for (i = 0; i < 64; ++i) {
-		color[i] = bench_color[i];
-		piece[i] = bench_piece[i];
-	}
+
 	side = WHITE;
 	xside = BLACK;
 	castle = 0;
@@ -344,11 +340,7 @@ void test2()
 	int i;
 	int t[3];
 	double nps;
-    
-	for (i = 0; i < 64; ++i) {
-		color[i] = bench_color[i];
-		piece[i] = bench_piece[i];
-	}
+
 	side = WHITE;
 	xside = BLACK;
 	castle = 0;
