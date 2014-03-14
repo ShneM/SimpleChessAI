@@ -48,8 +48,10 @@ int main()
 	
 	printf("\n");
 	printf("Options are: \n");
-	printf("on - computer plays for the side to move\n");
-	printf("off - computer stops playing\n");
+	printf("go - system plays for the side to move\n");
+	printf("stop - system stops playing for a side\n");
+	printf("openbook - system plays with strategy book\n");
+	printf("closebook - system plays without strategy book\n");
 	printf("st n - search for n seconds per move\n");
 	printf("sd n - search n ply per move\n");
 	printf("undo - takes back a move\n");
@@ -61,7 +63,7 @@ int main()
 	printf("Enter moves in coordinate notation \n");
 	init_hash();
 	init_board();
-	open_book();
+	//open_book();
 	gen();
 	computer_side = EMPTY;
 	max_time = 1 << 25;
@@ -85,15 +87,23 @@ int main()
 		}
         
 		/* get user input */
-		printf("tscp> ");
+		printf("chess> ");
 		if (scanf("%s", s) == EOF)
 			return 0;
-		if (!strcmp(s, "on")) {
+		if (!strcmp(s, "go")) {
 			computer_side = side;
 			continue;
 		}
-		if (!strcmp(s, "off")) {
+		if (!strcmp(s, "stop")) {
 			computer_side = EMPTY;
+			continue;
+		}
+		if (!strcmp(s, "openbook")) {
+			open_book();
+			continue;
+		}
+		if (!strcmp(s, "closebook")) {
+			close_book();
 			continue;
 		}
 		if (!strcmp(s, "st")) {
@@ -309,7 +319,7 @@ void test1()
 	print_board();
 	max_time = 1 << 25;
 	max_depth = 5;
-	for (i = 0; i < 50; ++i) {
+	for (i = 0; i < 25; ++i) {
 		think(1);
 		t[i] = get_ms() - start_time;
 		printf("Time: %d ms\n", t[i]);
@@ -352,7 +362,7 @@ void test2()
 	print_board();
 	max_time = 1 << 25;
 	max_depth = 5;
-	for (i = 0; i < 50; ++i) {
+	for (i = 0; i < 25; ++i) {
 		think(1);
 		t[i] = get_ms() - start_time;
 		printf("Time: %d ms\n", t[i]);
