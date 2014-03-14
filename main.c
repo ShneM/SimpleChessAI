@@ -63,13 +63,13 @@ int main()
 	printf("Enter moves in coordinate notation \n");
 	init_hash();
 	init_board();
-	//open_book();
 	gen();
+	print_board();
 	computer_side = EMPTY;
 	max_time = 1 << 25;
 	max_depth = 4;
 	for (;;) {
-		if (side == computer_side) {  /* computer's turn */
+		if (side == computer_side) { 
 			
 			/* think about the move and make it */
 			think(1);
@@ -159,8 +159,10 @@ int main()
 			gen();
 			print_result();
 		}
+		
+		print_board();
 	}
-	close_book();
+
 	return 0;
 }
 
