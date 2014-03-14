@@ -76,7 +76,7 @@ void think(int output)
 	}
 }
 int search(int alpha, int beta, int depth){
-	int i, nextMoveVal, val, j;
+	int i, nextMaxVal, val, j;
 	BOOL f = FALSE;
 	
 	// If maximum depth, call puning
@@ -106,16 +106,18 @@ int search(int alpha, int beta, int depth){
 	else {
 		gen();
 		for (i = first_move[ply]; i < first_move[ply + 1]; ++i) {
-			makemove(gen_dat[i].m.b);
+			sort(i);
+			if (!makemove(gen_dat[i].m.b))
+				continue;
 			f = TRUE;
-			nextMoveVal = -search(-alpha, -beta, depth--);
-			val = eval();
-			if (nextMoveVal > alpha){
+			nextMaxVal = -search(-beta, -alpha, depth-1);
+			takeback();
+			if (nextMaxVal > alpha){
 				history[(int)gen_dat[i].m.b.from][(int)gen_dat[i].m.b.to] += depth;
-				if (nextMoveVal >= beta){
+				if (nextMaxVal >= beta){
 					return beta;
 				}
-				alpha = nextMoveVal;
+				alpha = nextMaxVal;
 				
 				pv[ply][ply] = gen_dat[i].m;
 				for(j = ply+1; j<pv_length[ply+1]; ++j){
